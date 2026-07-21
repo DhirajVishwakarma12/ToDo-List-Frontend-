@@ -1,11 +1,20 @@
-import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from "react-toastify";
 import Config from '../config/config';
+import React, { useState, useEffect } from "react";
+
+
 
 const RegisterPage = () => {
+
+
+    useEffect(() => {
+        axios
+            .get(`${Config.API_URL}/`)
+            .catch((err) => console.error(err));
+    }, []);
 
 
     const navigate = useNavigate();
@@ -82,7 +91,7 @@ const RegisterPage = () => {
 
     };
 
-    
+
     return (
 
 
@@ -158,7 +167,7 @@ const RegisterPage = () => {
                     {/* Register Button */}
                     <button
                         type="submit"
-                        className="w-full rounded-lg bg-blue-600 py-3 font-semibold text-white transition hover:bg-blue-700 active:scale-99"
+                        className="w-full rounded-lg bg-blue-600 py-3 font-semibold text-white transition hover:bg-blue-700 active:scale-95"
                     >
                         Register
                     </button>

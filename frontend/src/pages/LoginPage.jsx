@@ -1,9 +1,22 @@
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom';
+import React, { useState  ,useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from "react-toastify";
 import api from '../config/api';
 
-const LoginPage = () => {
+const LoginPage =() => {
+    useEffect(() => {
+    const wakeBackend = async () => {
+        try {
+            await fetch("https://todo-list-backend-9pay.onrender.com/");
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    wakeBackend();
+}, []);
+
+
 
     const navigate = useNavigate();
 
@@ -13,15 +26,9 @@ const LoginPage = () => {
     const [usernameError, SetusernameError] = useState(false)
     const [passwordError, SetpasswordError] = useState(false)
 
-    const otptimer = () => {
-        SetOutmessage(true)
-        setTimeout(() => {
-            SetOutmessage("");
-        }, 5000)
-    }
 
     //form submit logic
-    const submitform = async (e) => {
+    const submitform = async(e) => {
         e.preventDefault();
 
 
@@ -45,7 +52,7 @@ const LoginPage = () => {
             return
         }
 
-          try {
+        try {
             const response = await api.post(
                 '/api/auth/login',
                 {
@@ -114,7 +121,7 @@ const LoginPage = () => {
                     {/* password */}
                     <div>
                         <label className="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                           Password
+                            Password
                         </label>
 
                         <div className="flex gap-3">
@@ -134,7 +141,7 @@ const LoginPage = () => {
 
                     <button
                         type="submit"
-                        className="w-full rounded-xl bg-blue-600 py-3 text-lg font-semibold text-white transition hover:bg-blue-700 active:scale-99"
+                        className="w-full rounded-xl bg-blue-600 py-3 text-lg font-semibold text-white transition hover:bg-blue-700 active:scale-95"
                     >
                         Login
                     </button>
@@ -151,12 +158,12 @@ const LoginPage = () => {
                 <div className="text-center">
                     <p className="text-gray-600 dark:text-gray-400">
                         New User{" "}
-                        <a
-                            href="/register"
+                        <Link
+                            to="/register"
                             className="font-semibold text-red-600 hover:underline dark:text-red-400"
                         >
                             Register in
-                        </a>
+                        </Link>
                     </p>
                 </div>
 

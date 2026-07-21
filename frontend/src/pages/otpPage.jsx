@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios from "axios";
@@ -6,6 +6,13 @@ import Config from "../config/config";
 
 
 const OtpPage = () => {
+
+
+    useEffect(() => {
+        axios
+            .get(`${Config.API_URL}/`)
+            .catch((err) => console.error(err));
+    }, []);
 
     let count = 0;
     const [otp, setOtp] = useState("");
@@ -62,14 +69,13 @@ const OtpPage = () => {
             // Verify OTP API
         }
     };
-    
+
 
     async function resend() {
 
-        if(count > 2)
-        {
-             toast.error("you reached limit , wait for 24 hours");
-             return
+        if (count > 2) {
+            toast.error("you reached limit , wait for 24 hours");
+            return
         }
         count = count + 1;
 

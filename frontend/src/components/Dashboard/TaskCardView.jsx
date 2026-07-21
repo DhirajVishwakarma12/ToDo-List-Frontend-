@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import api from "../../config/api";
 
 const TaskCardView = ({
   task,
@@ -9,6 +10,18 @@ const TaskCardView = ({
   isCompleting = false,
 }) => {
   const [showDetails, setShowDetails] = useState(false);
+  const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
+  const [passwordInput, setPasswordInput] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [isAuthorized, setIsAuthorized] = useState(false);
+
+  useEffect(() => {
+    setShowDetails(false);
+    setShowPasswordPrompt(false);
+    setPasswordInput("");
+    setPasswordError("");
+    setIsAuthorized(false);
+  }, [task]);
 
   if (!task) {
     return (
@@ -24,10 +37,64 @@ const TaskCardView = ({
     : "No time";
 
   const completed = Boolean(task.completed) || task.status === "Completed";
+  const priorityClass =
+    task.priority === "High"
+      ? "bg-red-500"
+      : task.priority === "Medium"
+      ? "bg-yellow-500 text-slate-900"
+      : "bg-green-500";
+  const isLocked = Boolean(task.isPrivate);
+  const canViewDetails = !isLocked || isAuthorized;
+
+  const handleToggleDetails = () => {
+    if (showDetails) {
+      setShowDetails(false);
+      setIsAuthorized(false);
+      setPasswordInput("");
+      setPasswordError("");
+      setShowPasswordPrompt(false);
+      return;
+    }
+
+    if (isLocked && !isAuthorized) {
+      setPasswordInput("");
+      setPasswordError("");
+      setShowPasswordPrompt(true);
+      return;
+    }
+
+    setShowDetails(true);
+  };
+
+  const handlePasswordSubmit = async (event) => {
+    event.preventDefault();
+
+    if (!passwordInput.trim()) {
+      setPasswordError("Password is required.");
+      return;
+    }
+
+    try {
+      await api.post("/api/profile/verify-private-password", { password: passwordInput });
+      setIsAuthorized(true);
+      setShowPasswordPrompt(false);
+      setShowDetails(true);
+      setPasswordError("");
+    } catch (error) {
+      const message = error.response?.data?.message || "Incorrect password.";
+      setPasswordError(message);
+    }
+  };
+
+  const handleCancelPassword = () => {
+    setShowPasswordPrompt(false);
+    setPasswordInput("");
+    setPasswordError("");
+  };
 
   return (
     <div
-      className={`bg-white dark:bg-slate-800 border dark:border-slate-700 rounded-2xl px-5 py-3 shadow-md transition-all duration-300 ${
+      className={`relative bg-white dark:bg-slate-800 border dark:border-slate-700 rounded-2xl px-5 py-3 shadow-md transition-all duration-300 ${
         isFutureTask
           ? "pointer-events-none select-none opacity-55 blur-[1px]"
           : "hover:shadow-xl"
@@ -46,7 +113,46 @@ const TaskCardView = ({
         </div>
       </div>
 
-      {showDetails && (
+      <div className={`absolute right-4 top-4 rounded-full px-3 py-1.5 text-sm font-semibold text-white ${priorityClass}`}>
+        {task.priority || "No priority"}
+      </div>
+
+      {showPasswordPrompt && !canViewDetails && (
+        <div className="mt-4 rounded-2xl border border-gray-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900">
+          <p className="text-sm text-gray-700 dark:text-gray-300">
+            This task is private. Enter the password to view details.
+          </p>
+          <form onSubmit={handlePasswordSubmit} className="mt-3 space-y-3">
+            <input
+              type="password"
+              value={passwordInput}
+              onChange={(e) => setPasswordInput(e.target.value)}
+              placeholder="Password"
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+            />
+            {passwordError && (
+              <p className="text-sm text-red-500">{passwordError}</p>
+            )}
+            <div className="flex flex-wrap gap-3">
+              <button
+                type="submit"
+                className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-600"
+              >
+                Unlock
+              </button>
+              <button
+                type="button"
+                onClick={handleCancelPassword}
+                className="rounded-lg bg-gray-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-gray-400 dark:bg-slate-700 dark:text-white"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {showDetails && canViewDetails && (
         <div className="mt-3 border-t border-gray-200 pt-3 dark:border-slate-700">
           <p className="text-gray-500 dark:text-gray-400">
             {task.description || "No description"}
@@ -83,11 +189,11 @@ const TaskCardView = ({
 
       <div className="mt-3 flex justify-end gap-3">
         <button
-          onClick={() => setShowDetails((current) => !current)}
+          onClick={handleToggleDetails}
           aria-expanded={showDetails}
           className="rounded-lg bg-indigo-500 px-4 py-1.5 text-sm text-white transition hover:bg-indigo-600"
         >
-          {showDetails ? "Hide details" : "View"}
+          {showDetails && canViewDetails ? "Hide details" : "View"}
         </button>
 
         {!completed && (

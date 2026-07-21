@@ -1,11 +1,55 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import api from "../../config/api";
 
-const Settings = ({ darkMode, setDarkMode }) => {
+const Settings = () => {
     const navigate = useNavigate();
     const [notifications, setNotifications] = useState(true);
+    const [darkModeState, setDarkModeState] = useState(true);
+    const [privatePasswordSet, setPrivatePasswordSet] = useState(false);
+    const [currentPassword, setCurrentPassword] = useState("");
+    const [newPassword, setNewPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [isSavingPassword, setIsSavingPassword] = useState(false);
+
+    useEffect(() => {
+        const fetchProfile = async () => {
+            try {
+                const response = await api.get('/api/profile/viewprofile');
+                setPrivatePasswordSet(Boolean(response.data.privatePasswordSet));
+            } catch (error) {
+                console.error(error);
+            }
+        };
+
+        fetchProfile();
+    }, []);
+
+    const handlePasswordSave = async () => {
+        if (!newPassword || !confirmPassword) {
+            toast.error("Please enter both new password fields.");
+            return;
+        }
+
+        try {
+            setIsSavingPassword(true);
+            await api.post('/api/profile/private-password', {
+                currentPassword: privatePasswordSet ? currentPassword : undefined,
+                newPassword,
+                confirmPassword,
+            });
+            toast.success("Private task password saved successfully.");
+            setPrivatePasswordSet(true);
+            setCurrentPassword("");
+            setNewPassword("");
+            setConfirmPassword("");
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Unable to save private password.");
+        } finally {
+            setIsSavingPassword(false);
+        }
+    };
 
     const handleLogoutAll = async() => {
         
@@ -57,12 +101,12 @@ const Settings = ({ darkMode, setDarkMode }) => {
                     </div>
 
                     <button
-                        onClick={() => setDarkMode(!darkMode)}
-                        className={`relative w-16 h-8 rounded-full transition ${darkMode ? "bg-blue-600" : "bg-gray-400"
+                        onClick={() => setDarkModeState(!darkModeState)}
+                        className={`relative w-16 h-8 rounded-full transition ${darkModeState ? "bg-blue-600" : "bg-gray-400"
                             }`}
                     >
                         <div
-                            className={`absolute top-1 w-6 h-6 rounded-full bg-white transition ${darkMode ? "left-9" : "left-1"
+                            className={`absolute top-1 w-6 h-6 rounded-full bg-white transition ${darkModeState ? "left-9" : "left-1"
                                 }`}
                         />
                     </button>
@@ -91,6 +135,77 @@ const Settings = ({ darkMode, setDarkMode }) => {
                     </button>
                 </div>
 
+                {/* Private Task Password */}
+                <div className="py-5 border-b border-slate-300 dark:border-slate-700">
+                    <div className="mb-4">
+                        <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
+                            Private Task Password
+                        </h2>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            Set a single password for all private tasks. Existing private tasks will use this password for access.
+                        </p>
+                    </div>
+
+                    {privatePasswordSet ? (
+                        <div className="mb-4 rounded-lg bg-green-50 p-4 text-sm text-green-900 dark:bg-green-900/25 dark:text-green-200">
+                            Private task password is set. Use the form below to change it.
+                        </div>
+                    ) : (
+                        <div className="mb-4 rounded-lg bg-yellow-50 p-4 text-sm text-yellow-900 dark:bg-yellow-900/25 dark:text-yellow-200">
+                            No private task password is configured yet. Set one now to secure private tasks.
+                        </div>
+                    )}
+
+                    {privatePasswordSet && (
+                        <div className="mb-4">
+                            <label className="block mb-2 text-sm font-medium text-slate-900 dark:text-white">
+                                Current Private Password
+                            </label>
+                            <input
+                                type="password"
+                                value={currentPassword}
+                                onChange={(e) => setCurrentPassword(e.target.value)}
+                                placeholder="Enter current password"
+                                className="w-full rounded-lg border px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                            />
+                        </div>
+                    )}
+
+                    <div className="mb-4">
+                        <label className="block mb-2 text-sm font-medium text-slate-900 dark:text-white">
+                            New Private Password
+                        </label>
+                        <input
+                            type="password"
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            placeholder="Enter new password"
+                            className="w-full rounded-lg border px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                        />
+                    </div>
+
+                    <div className="mb-4">
+                        <label className="block mb-2 text-sm font-medium text-slate-900 dark:text-white">
+                            Confirm New Password
+                        </label>
+                        <input
+                            type="password"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            placeholder="Confirm new password"
+                            className="w-full rounded-lg border px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                        />
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={handlePasswordSave}
+                        disabled={isSavingPassword}
+                        className="mb-5 rounded-lg bg-blue-600 text-white px-5 py-3 hover:bg-blue-700 transition disabled:opacity-50"
+                    >
+                        {isSavingPassword ? "Saving..." : privatePasswordSet ? "Change Private Password" : "Set Private Password"}
+                    </button>
+                </div>
 
                 {/* Logout All Devices */}
                 <div className="flex items-center justify-between py-5">

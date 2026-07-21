@@ -1,9 +1,34 @@
 import React from "react";
 
+const startOfDay = (date) => {
+  const result = new Date(date);
+  result.setHours(0, 0, 0, 0);
+  return result;
+};
+
+const isToday = (task) => {
+  const taskDate = task.taskDate || task.date || task.scheduledDate || task.dueDate;
+
+  if (taskDate && !Number.isNaN(new Date(taskDate).getTime())) {
+    return startOfDay(taskDate).getTime() === startOfDay(new Date()).getTime();
+  }
+
+  // Support tasks saved before taskDate was added. Their relative schedule
+  // applies to the day on which they were created, not every future day.
+  const createdAt = task.createdAt || task.updatedAt;
+  if (!createdAt || Number.isNaN(new Date(createdAt).getTime())) return false;
+
+  const schedule = (task.schedule || task.day || "").toLowerCase();
+  const offset = { yesterday: -1, today: 0, tomorrow: 1 }[schedule];
+  if (offset === undefined) return false;
+
+  const scheduledDate = new Date(createdAt);
+  scheduledDate.setDate(scheduledDate.getDate() + offset);
+  return startOfDay(scheduledDate).getTime() === startOfDay(new Date()).getTime();
+};
+
 const StatsCards = ({ tasks }) => {
-  const todayTasks = tasks.filter(
-    (task) => (task.schedule || task.day || "").toLowerCase() === "today"
-  );
+  const todayTasks = (Array.isArray(tasks) ? tasks : []).filter(isToday);
   const total = todayTasks.length;
   const completed = todayTasks.filter(
     (task) => task.completed || task.status === "Completed" || task.mode === "complete"

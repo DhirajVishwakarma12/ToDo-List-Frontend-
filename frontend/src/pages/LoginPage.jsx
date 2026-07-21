@@ -1,20 +1,14 @@
-import React, { useState  ,useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from "react-toastify";
 import api from '../config/api';
 
-const LoginPage =() => {
-    useEffect(() => {
-    const wakeBackend = async () => {
-        try {
-            await fetch("https://todo-list-backend-9pay.onrender.com/");
-        } catch (err) {
-            console.error(err);
-        }
-    };
-
-    wakeBackend();
-}, []);
+const LoginPage = () => {
+     useEffect(() => {
+        api
+            .get('/')
+            .catch((err) => console.error(err));
+    }, []);
 
 
 
@@ -28,7 +22,7 @@ const LoginPage =() => {
 
 
     //form submit logic
-    const submitform = async(e) => {
+    const submitform = async (e) => {
         e.preventDefault();
 
 
@@ -75,7 +69,12 @@ const LoginPage =() => {
             }, 1500);
 
         } catch (error) {
-            toast.error(error.response?.data?.message || "Something went wrong");
+
+            toast.error(
+                error.response?.data?.message ||
+                error.message ||
+                "Something went wrong"
+            );
         }
 
     };

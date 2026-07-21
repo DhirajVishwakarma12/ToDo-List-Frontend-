@@ -4,6 +4,8 @@ import axios from 'axios';
 import { toast } from "react-toastify";
 import Config from '../config/config';
 import React, { useState, useEffect } from "react";
+import api from '../config/api';
+
 
 
 
@@ -11,8 +13,8 @@ const RegisterPage = () => {
 
 
     useEffect(() => {
-        axios
-            .get(`${Config.API_URL}/`)
+        api
+            .get('/')
             .catch((err) => console.error(err));
     }, []);
 

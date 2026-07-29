@@ -40,7 +40,7 @@ const Navbar = ({ darkMode, setDarkMode }) => {
   // Logout
   const log_out = async () => {
     try {
-      const response = await api.get('/api/auth/logout',{),
+      const response = await api.get('/api/auth/logout',{},
       {
         withCredentials: true
       };

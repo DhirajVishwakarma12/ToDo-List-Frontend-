@@ -36,6 +36,7 @@ const Navbar = ({ darkMode, setDarkMode }) => {
 
     fetchProfile();
   }, []);
+  
 
   // Logout
   const log_out = async () => {

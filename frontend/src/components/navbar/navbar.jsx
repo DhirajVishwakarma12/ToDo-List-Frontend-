@@ -15,9 +15,6 @@ const Navbar = ({ darkMode, setDarkMode }) => {
     email: "",
   });
 
-
-
-
   // Fetch Profile
   useEffect(() => {
     const fetchProfile = async () => {
@@ -43,7 +40,10 @@ const Navbar = ({ darkMode, setDarkMode }) => {
   // Logout
   const log_out = async () => {
     try {
-      const response = await api.get('/api/auth/logout');
+      const response = await api.get('/api/auth/logout',{),
+      {
+        withCredentials: true
+      };
 
       localStorage.removeItem("accessToken");
       toast.success(response.data.message);

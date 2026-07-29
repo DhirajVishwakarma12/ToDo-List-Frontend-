@@ -41,10 +41,7 @@ const Navbar = ({ darkMode, setDarkMode }) => {
   // Logout
   const log_out = async () => {
     try {
-      const response = await api.get('/api/auth/logout',{},
-      {
-        withCredentials: true
-      });
+      const response = await api.get('/api/auth/logout');
 
       localStorage.removeItem("accessToken");
       toast.success(response.data.message);
